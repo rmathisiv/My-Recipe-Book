@@ -190,6 +190,28 @@ input::placeholder, textarea::placeholder { color: var(--brown-light); }
 .recipe-item .r-meta { display: flex; gap: 10px; font-size: 11px; color: var(--brown); font-family: var(--sans); margin-top: 3px; flex-wrap: wrap; }
 .empty-state { text-align: center; padding: 40px; color: var(--brown); font-size: 14px; font-family: var(--sans); }
 
+/* SUB-CATEGORY CHIPS */
+.chip-row {
+  display: flex; gap: 7px; padding: 0 20px 12px; overflow-x: auto;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.chip-row::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0; padding: 6px 14px; border-radius: 20px;
+  font-size: 12px; font-family: var(--sans); font-weight: 500;
+  border: 1px solid var(--border); color: var(--brown);
+  -webkit-tap-highlight-color: transparent; white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.chip.on { background: var(--dark); color: #f5e6c8; border-color: var(--dark); }
+.chip:active { opacity: 0.8; }
+.sub-badge {
+  display: inline-block; font-size: 10px; font-family: var(--sans);
+  color: var(--brown-light); background: var(--border-light);
+  padding: 1px 7px; border-radius: 6px; margin-left: 6px;
+  text-transform: capitalize; font-weight: 500; vertical-align: middle;
+}
+
 /* DETAIL */
 .detail-header {
   display: flex; justify-content: space-between; align-items: center;
@@ -371,6 +393,7 @@ textarea.field-input { resize: vertical; line-height: 1.5; }
     <span class="icon">🔍</span>
     <input type="text" id="search-input" placeholder="Search recipes..." oninput="renderList()">
   </div>
+  <div class="chip-row" id="chip-row"></div>
   <div class="recipe-list" id="recipe-list"></div>
 </div>
 
@@ -401,6 +424,17 @@ textarea.field-input { resize: vertical; line-height: 1.5; }
       <div class="toggle-row">
         <button class="toggle-btn on" id="f-cat-food" onclick="setFormCat('food')">🍳 Food</button>
         <button class="toggle-btn" id="f-cat-drinks" onclick="setFormCat('drinks')">🍹 Drinks</button>
+      </div>
+
+      <label class="field-label">Subcategory</label>
+      <div class="toggle-row" id="f-sub-row">
+        <button class="toggle-btn on" data-sub="dinners" onclick="setFormSub('dinners')">Dinners</button>
+        <button class="toggle-btn" data-sub="sides" onclick="setFormSub('sides')">Sides</button>
+        <button class="toggle-btn" data-sub="soups" onclick="setFormSub('soups')">Soups</button>
+        <button class="toggle-btn" data-sub="desserts" onclick="setFormSub('desserts')">Desserts</button>
+      </div>
+      <div class="toggle-row" id="f-sub-row2" style="margin-top:6px">
+        <button class="toggle-btn" data-sub="meal prep" onclick="setFormSub('meal prep')">Meal Prep</button>
       </div>
 
       <label class="field-label">Source</label>
@@ -445,82 +479,112 @@ textarea.field-input { resize: vertical; line-height: 1.5; }
 <script>
 // ── DATA ──
 const INITIAL = [
-  {
-    id:"1",category:"food",title:"Chicken Cutlets with Lemon Cream Penne",source:"Notes",servings:2,prepTime:"15 min",cookTime:"25 min",
+  {id:"1",category:"food",sub:"dinners",title:"Chicken Cutlets with Lemon Cream Penne",source:"Notes",servings:2,prepTime:"15 min",cookTime:"25 min",
     ingredients:["2 boneless, skinless chicken breasts, pounded thin","Flour, seasoned with salt & pepper","2 eggs, beaten and seasoned with salt & pepper","Bread crumbs, seasoned with salt & pepper","½ cup grated Parmesan","2 tbsp fresh parsley, chopped","Olive oil for frying","½ lb penne pasta","2–3 shallots, thinly sliced","3 cloves garlic, minced","2 tbsp butter","1 cup heavy cream","Juice of 1 lemon","¼ cup grated pecorino","Parmesan shavings for garnish","Salt & pepper to taste","Pinch of red pepper flakes","Reserved pasta water (about ½ cup)"],
-    steps:["Cook penne in salted water until al dente. Reserve ½ cup of pasta water before draining.","Season flour, eggs, and breadcrumbs with salt & pepper. Mix grated Parmesan and parsley into the breadcrumb bowl. Dredge chicken in flour, dip in eggs, then coat in breadcrumb mixture.","Heat olive oil in a pan over medium heat. Fry chicken until golden and cooked through, about 3–4 minutes per side. Rest on paper towels.","In a separate pan, melt butter and sauté garlic and shallots until soft and fragrant. Stir in heavy cream and let it simmer. Add lemon juice, pecorino, and shaved Parmesan. Season with salt, pepper, and red pepper flakes. Loosen with reserved pasta water if needed.","Toss the penne in the sauce. Slice the chicken cutlets and serve on top. Garnish with extra Parmesan shavings."],
-    notes:""
-  },
-  {
-    id:"2",category:"food",title:"Lighter Lemon Chicken Orzo",source:"@noaawilliams_",servings:4,prepTime:"10 min",cookTime:"20 min",
+    steps:["Cook penne in salted water until al dente. Reserve ½ cup of pasta water before draining.","Season flour, eggs, and breadcrumbs with salt & pepper. Mix grated Parmesan and parsley into the breadcrumb bowl. Dredge chicken in flour, dip in eggs, then coat in breadcrumb mixture.","Heat olive oil in a pan over medium heat. Fry chicken until golden and cooked through, about 3–4 minutes per side. Rest on paper towels.","In a separate pan, melt butter and sauté garlic and shallots until soft and fragrant. Stir in heavy cream and let it simmer. Add lemon juice, pecorino, and shaved Parmesan. Season with salt, pepper, and red pepper flakes. Loosen with reserved pasta water if needed.","Toss the penne in the sauce. Slice the chicken cutlets and serve on top. Garnish with extra Parmesan shavings."],notes:""},
+  {id:"2",category:"food",sub:"dinners",title:"Lighter Lemon Chicken Orzo",source:"@noaawilliams_",servings:4,prepTime:"10 min",cookTime:"20 min",
     ingredients:["½ tbsp olive oil","500g chicken, diced","½ tsp paprika","1 tbsp butter","1 small onion, diced","2 garlic cloves, minced (or 1 tsp powder)","1 cup orzo pasta (uncooked)","1 medium zucchini, grated","2 cups low sodium chicken stock","Zest and juice of 1 small lemon","½ tsp each: dried thyme, salt, pepper","½ cup light cream","30–40g mozzarella","30g crumbly feta","Fresh parsley"],
-    steps:["Season the chicken with ½ tsp salt, paprika, and pepper.","Heat olive oil in a large pot over medium-high heat. Cook chicken until mostly done, about 3–4 minutes. Remove and set aside.","Melt butter in the same pan. Add onions and sauté 3–4 minutes. Add orzo and toast for 2 minutes. Add grated zucchini and garlic, cook 2 more minutes.","Add chicken stock, lemon zest and juice. Season with salt, pepper, and thyme. Stir chicken back in, cover, reduce heat to medium-low, and simmer 8–10 minutes until orzo is tender. Stir throughout to prevent sticking.","Once orzo is cooked, add the cream and stir until combined. Remove from heat and stir through the feta and mozzarella until melted. Season with salt, pepper, and fresh parsley."],
-    notes:"Macros per serving: 443 cal | F 14.2 | C 43.8 | P 34"
-  },
-  {
-    id:"3",category:"food",title:"Marry Me Chicken",source:"Salt & Lavender",servings:4,prepTime:"10 min",cookTime:"20 min",
+    steps:["Season the chicken with ½ tsp salt, paprika, and pepper.","Heat olive oil in a large pot over medium-high heat. Cook chicken until mostly done, about 3–4 minutes. Remove and set aside.","Melt butter in the same pan. Add onions and sauté 3–4 minutes. Add orzo and toast for 2 minutes. Add grated zucchini and garlic, cook 2 more minutes.","Add chicken stock, lemon zest and juice. Season with salt, pepper, and thyme. Stir chicken back in, cover, reduce heat to medium-low, and simmer 8–10 minutes until orzo is tender.","Once orzo is cooked, add the cream and stir until combined. Remove from heat and stir through the feta and mozzarella until melted. Season with salt, pepper, and fresh parsley."],notes:"Macros per serving: 443 cal | F 14.2 | C 43.8 | P 34"},
+  {id:"3",category:"food",sub:"dinners",title:"Marry Me Chicken",source:"Salt & Lavender",servings:4,prepTime:"10 min",cookTime:"20 min",
     ingredients:["2 large chicken breasts","½ tsp garlic powder","Salt & pepper to taste","1 tbsp butter","1 tbsp olive oil","1 tbsp flour","4 cloves garlic, minced","½ cup dry white wine (or chicken broth)","1 cup heavy/whipping cream","1 tbsp tomato paste","⅓ cup sun-dried tomatoes","½ tsp dried oregano","¼ tsp crushed red pepper flakes","⅓ cup freshly grated Parmesan","1 small handful fresh basil, chopped"],
-    steps:["Cut chicken breasts in half lengthwise to make 4 thinner pieces. Season with garlic powder, salt, and pepper.","Add butter and olive oil to a skillet over medium-high heat. Let the pan heat up a few minutes.","Cook chicken about 5–6 minutes per side until golden and cooked through (165°F). Transfer to a plate and tent with foil.","Turn heat to medium. Add flour and garlic to the skillet. Cook about a minute, stirring often.","Pour in the wine and whisk until flour has dissolved. Let it bubble until reduced by half.","Stir in cream, tomato paste, sun-dried tomatoes, oregano, and red pepper flakes. Simmer a few minutes until thickened to desired consistency.","Take skillet off heat. Stir in Parmesan and basil.","Add chicken back to the skillet with any juices. Spoon sauce over top. Season with extra salt & pepper as needed."],
-    notes:"Use Parmesan from a block you grate yourself for best results."
-  },
-  {
-    id:"4",category:"food",title:"Lemon Greek Rice with Chicken",source:"@Cookingwithashhhh",servings:3,prepTime:"10 min",cookTime:"20 min",
+    steps:["Cut chicken breasts in half lengthwise to make 4 thinner pieces. Season with garlic powder, salt, and pepper.","Add butter and olive oil to a skillet over medium-high heat. Let the pan heat up a few minutes.","Cook chicken about 5–6 minutes per side until golden and cooked through (165°F). Transfer to a plate and tent with foil.","Turn heat to medium. Add flour and garlic to the skillet. Cook about a minute, stirring often.","Pour in the wine and whisk until flour has dissolved. Let it bubble until reduced by half.","Stir in cream, tomato paste, sun-dried tomatoes, oregano, and red pepper flakes. Simmer a few minutes until thickened.","Take skillet off heat. Stir in Parmesan and basil.","Add chicken back to the skillet with any juices. Spoon sauce over top."],notes:"Use Parmesan from a block you grate yourself for best results."},
+  {id:"4",category:"food",sub:"dinners",title:"Lemon Greek Rice with Chicken",source:"@Cookingwithashhhh",servings:3,prepTime:"10 min",cookTime:"20 min",
     ingredients:["1.5 lb chicken breast","Salt, pepper, onion powder, garlic powder","1 tbsp olive oil","8 oz grape tomatoes, sliced in half","5 cloves garlic, minced","Dried oregano + salt","5 oz fresh spinach, chopped","3 tbsp lemon juice","1.5 cups cooked jasmine rice","6 oz feta cheese","1 tbsp extra virgin olive oil","1 tbsp lemon juice (for feta mixture)","¼ tsp dried oregano (for feta mixture)"],
-    steps:["Cook jasmine rice according to package directions.","Slice chicken breasts in half and season generously. Cook in a large pan for 4 minutes each side. Remove and dice.","In the same pan, add HALF of the diced tomatoes. Cook about 5 minutes. Add garlic and stir for a minute. Add chopped spinach and mix until wilted. Add rice and mix together.","Make feta cheese mixture: mix feta, olive oil, lemon juice, and oregano in a small bowl.","Add half of the feta mixture to the pot, along with remaining tomatoes, diced chicken, and lemon juice. Mix until well incorporated.","Serve and top with the rest of the feta cheese mixture."],
-    notes:""
-  },
-  {
-    id:"5",category:"food",title:"Marathon Bolognese",source:"Run Fast. Cook Fast. Eat Slow.",servings:4,prepTime:"10 min",cookTime:"35 min",
+    steps:["Cook jasmine rice according to package directions.","Slice chicken breasts in half and season generously. Cook in a large pan for 4 minutes each side. Remove and dice.","In the same pan, add HALF of the diced tomatoes. Cook about 5 minutes. Add garlic and stir for a minute. Add chopped spinach and mix until wilted. Add rice and mix together.","Make feta cheese mixture: mix feta, olive oil, lemon juice, and oregano in a small bowl.","Add half of the feta mixture to the pot, along with remaining tomatoes, diced chicken, and lemon juice. Mix until well incorporated.","Serve and top with the rest of the feta cheese mixture."],notes:""},
+  {id:"5",category:"food",sub:"dinners",title:"Marathon Bolognese",source:"Run Fast. Cook Fast. Eat Slow.",servings:4,prepTime:"10 min",cookTime:"35 min",
     ingredients:["1 tbsp extra-virgin olive oil","1 lb ground beef or bison (preferably grass-fed)","1 tsp fine sea salt, divided","3 cloves garlic, minced","2 tsp dried oregano","½ tsp red pepper flakes (optional)","2 red bell peppers, seeded and chopped","2 heaping cups sliced mushrooms","1 can (28 oz) crushed or diced tomatoes","4 cups baby spinach or chopped kale (optional)","Parmesan (optional)"],
-    steps:["Heat oil in a large pot over medium-high heat. Add beef and ½ tsp salt, cook until lightly browned, breaking into bite-size pieces, about 3 minutes. Add garlic, oregano, and red pepper flakes. Sauté 1 minute.","Add bell peppers, mushrooms, and remaining ½ tsp salt. If meat is lean, add another tablespoon of oil. Cook, stirring occasionally, until mushrooms soften, about 5 minutes.","Add tomatoes. Bring to a boil, reduce to a simmer, and cook uncovered, stirring occasionally, until sauce thickens, about 25 minutes. Stir in spinach or kale if using.","Taste and add more salt and pepper if needed.","Serve over pasta, rice, zucchini noodles, or spaghetti squash. Top with grated Parmesan if desired."],
-    notes:"Tip: Also great with carrots, celery, and onions. Leftover sauce freezes well for pizza night. If too acidic, add a tsp of sugar."
-  },
-  {
-    id:"6",category:"food",title:"Soy Glazed Chicken & Cucumber Salad",source:"@JoexFitness",servings:2,prepTime:"15 min",cookTime:"15 min",
+    steps:["Heat oil in a large pot over medium-high heat. Add beef and ½ tsp salt, cook until lightly browned, about 3 minutes. Add garlic, oregano, and red pepper flakes. Sauté 1 minute.","Add bell peppers, mushrooms, and remaining ½ tsp salt. Cook until mushrooms soften, about 5 minutes.","Add tomatoes. Bring to a boil, reduce to a simmer, cook uncovered about 25 minutes. Stir in spinach or kale if using.","Taste and adjust salt and pepper.","Serve over pasta, rice, zucchini noodles, or spaghetti squash. Top with Parmesan."],notes:"Also great with carrots, celery, and onions. Leftover sauce freezes well for pizza night."},
+  {id:"6",category:"food",sub:"meal prep",title:"Soy Glazed Chicken & Cucumber Salad",source:"@JoexFitness",servings:2,prepTime:"15 min",cookTime:"15 min",
     ingredients:["1 lb boneless, skinless chicken thighs","2 tsp salt","2 tsp black pepper","¼ cup cornstarch","Spray oil","1 tsp sesame seeds","1 green onion, sliced","2.5 tbsp soy sauce","1 tbsp oyster sauce","2.5 tbsp honey","1.5 tbsp minced garlic","2 Persian cucumbers","2 tsp salt (for cucumbers)","1.5 tbsp rice vinegar","2 tsp brown sugar","½ tbsp soy sauce (for salad)","1 tsp sesame seeds (for salad)","1.5 cups cooked rice"],
-    steps:["Dice cucumbers into thin circles.","Lay chicken thighs flat, season with salt and pepper, coat evenly with cornstarch on both sides.","Mix soy sauce, oyster sauce, honey, and minced garlic to make the glaze.","Cook chicken on a pan with spray oil over medium heat until golden brown and crispy on both sides.","Remove chicken from pan. Pour sauce in and simmer 45 seconds, then add chicken back to coat.","Mix sliced cucumbers with salt. Let sit 15 minutes to draw out liquid. Rinse and pat dry.","Toss cucumbers with rice vinegar, brown sugar, soy sauce, and sesame seeds.","Assemble: rice, cucumber salad, and chicken. Top with sesame seeds and green onions."],
-    notes:"Great for meal prep. Keep salad and meat in separate bags to avoid soggy rice. Reheat rice with a damp paper towel."
-  },
-  {
-    id:"7",category:"food",title:"Baked Orzo with Chicken Sausage",source:"@Landrie | HEALTHY RECIPES",servings:4,prepTime:"5 min",cookTime:"60 min",
+    steps:["Dice cucumbers into thin circles.","Season chicken with salt, pepper, coat with cornstarch on both sides.","Mix soy sauce, oyster sauce, honey, and garlic to make the glaze.","Cook chicken on a pan with spray oil over medium heat until golden and crispy.","Remove chicken, pour sauce in pan, simmer 45 seconds, add chicken back to coat.","Mix cucumbers with salt, let sit 15 minutes. Rinse and pat dry.","Toss cucumbers with rice vinegar, brown sugar, soy sauce, and sesame seeds.","Assemble: rice, cucumber salad, and chicken. Top with sesame seeds and green onions."],notes:"Great for meal prep. Keep salad and meat in separate bags."},
+  {id:"7",category:"food",sub:"dinners",title:"Baked Orzo with Chicken Sausage",source:"@Landrie | HEALTHY RECIPES",servings:4,prepTime:"5 min",cookTime:"60 min",
     ingredients:["1 pack chicken sausage (Italian style)","1 lb orzo","1 container cherry tomatoes","3 cups chicken broth","2 handfuls spinach","Salt, pepper, and garlic powder to taste","1 container spinach artichoke dip"],
-    steps:["Preheat oven to 400°F.","Add all ingredients into a baking dish and mix to combine.","Bake for 30 minutes, then remove and stir.","Return to oven and bake for another 30 minutes, or until orzo is done. Keep an eye on it — oven times vary with pan size."],
-    notes:"Super easy one-dish meal. Great for busy weeknights."
-  },
-  {
-    id:"8",category:"drinks",title:"White Christmas Margarita",source:"@nikki.sips",servings:8,prepTime:"5 min",cookTime:"",
+    steps:["Preheat oven to 400°F.","Add all ingredients into a baking dish and mix.","Bake 30 minutes, then stir.","Bake another 30 minutes or until orzo is done."],notes:"Super easy one-dish meal."},
+  {id:"8",category:"drinks",sub:"",title:"White Christmas Margarita",source:"@nikki.sips",servings:8,prepTime:"5 min",cookTime:"",
     ingredients:["3 cups white cranberry juice","¾ cup orange liqueur","¾ cup fresh squeezed lime juice","2¼ cups blanco tequila","1.5 cups simple syrup","Edible glitter","Rosemary sprigs for garnish","Fresh cranberries for garnish","Powdered sugar for snowy effect"],
-    steps:["In a pitcher, combine white cranberry juice, orange liqueur, lime juice, tequila, simple syrup, and edible glitter.","Whisk or use a mixer to combine.","Pour over fresh ice and garnish with rosemary and cranberries. Sprinkle powdered sugar for a snowy effect."],
-    notes:"Pitcher recipe — perfect for holiday parties."
-  },
-  {
-    id:"9",category:"drinks",title:"Cranberry Bourbon Cocktail",source:"mybartender.com",servings:1,prepTime:"5 min",cookTime:"",
+    steps:["In a pitcher, combine white cranberry juice, orange liqueur, lime juice, tequila, simple syrup, and edible glitter.","Whisk or use a mixer to combine.","Pour over fresh ice and garnish with rosemary and cranberries. Sprinkle powdered sugar."],notes:"Pitcher recipe — perfect for holiday parties."},
+  {id:"9",category:"drinks",sub:"",title:"Cranberry Bourbon Cocktail",source:"mybartender.com",servings:1,prepTime:"5 min",cookTime:"",
     ingredients:["2 oz bourbon","1 oz lemon juice","1 oz simple syrup","2 oz cranberry juice","2 oz club soda","Fresh cranberries for garnish"],
-    steps:["In a cocktail shaker filled with ice, combine bourbon, lemon juice, simple syrup, and cranberry juice.","Seal and shake vigorously until well chilled.","Strain into a glass over fresh ice. Top with club soda.","Garnish with fresh cranberries."],
-    notes:""
-  },
-  {
-    id:"10",category:"drinks",title:"Cranberry Moscow Mule",source:"homemadeheather.com",servings:1,prepTime:"5 min",cookTime:"",
+    steps:["In a cocktail shaker filled with ice, combine bourbon, lemon juice, simple syrup, and cranberry juice.","Shake vigorously until chilled.","Strain into a glass over fresh ice. Top with club soda.","Garnish with fresh cranberries."],notes:""},
+  {id:"10",category:"drinks",sub:"",title:"Cranberry Moscow Mule",source:"homemadeheather.com",servings:1,prepTime:"5 min",cookTime:"",
     ingredients:["3 oz vodka","1 oz fresh squeezed lime juice (about ½ lime)","4 oz unsweetened cranberry juice","6 oz ginger beer","1 lime wedge for garnish","4–6 fresh cranberries for garnish","1 rosemary sprig for garnish","Ice cubes"],
-    steps:["Fill a copper mug or glass with ice cubes.","Add vodka, lime juice, and cranberry juice.","Top with ginger beer and gently stir to combine.","Garnish with a lime wedge, fresh cranberries, and a rosemary sprig."],
-    notes:""
-  }
+    steps:["Fill a copper mug or glass with ice cubes.","Add vodka, lime juice, and cranberry juice.","Top with ginger beer and gently stir.","Garnish with lime wedge, cranberries, and rosemary."],notes:""},
+  {id:"11",category:"food",sub:"dinners",title:"Chicken Taco Bowls",source:"@Cloie | Nourishment N...",servings:4,prepTime:"15 min",cookTime:"25 min",
+    ingredients:["[CILANTRO LIME RICE]","1 cup long-grain jasmine rice, rinsed","1½ cups water","1 tsp garlic, minced","1 tsp lime zest","1½ tbsp fresh lime juice","½ cup chopped fresh cilantro","1 tsp chicken bouillon","[CHICKEN MARINADE]","4 tbsp orange juice","1½ tbsp fresh lime juice","3 cloves garlic, minced","1½ tbsp chili powder","2 tsp dried oregano","2 tsp paprika","1 tsp salt","½ tsp pepper","Boneless, skinless chicken thighs","[CILANTRO LIME CREMA]","1 cup full fat Greek yogurt","2 tbsp mayo","1 tbsp fresh lime juice","¼ tsp garlic powder","½ tsp salt","¼ tsp onion powder","½ cup fresh cilantro","Optional: ¼ jalapeño","[TOPPINGS]","Pickled red onions","Sautéed red bell pepper","Black beans (rinsed & drained)"],
+    steps:["Rice: Add all rice ingredients to a pot or rice cooker. Cook as normal, fluff.","Chicken: Mix marinade ingredients. Marinate chicken 1 hour to overnight.","Grill or smoke chicken until cooked through. Rest, then chop.","Crema: Blend all crema ingredients, thin with milk or water as needed.","Assemble bowls with rice, chicken, beans, peppers, pickled onions, and crema."],notes:""},
+  {id:"12",category:"food",sub:"dinners",title:"Hot Honey Chicken",source:"@Alison (via Faith)",servings:2,prepTime:"20 min",cookTime:"15 min",
+    ingredients:["1 lb chicken breast (butterflied or cutlets)","Jasmine rice","Asparagus","Avocado oil","[MARINADE]","⅓ cup honey","1–2 tbsp Cholula","1 tbsp apple cider vinegar","1 tsp sea salt","¼ tsp black pepper","1 tbsp smoked paprika","1 tsp onion powder","3–4 cloves garlic, minced"],
+    steps:["Whisk all marinade ingredients together. Reserve ¼ cup for serving.","Pat chicken dry, add to marinade bowl, toss to coat. Refrigerate 15–30 minutes.","Prep asparagus (microwave steam 3–4 min) and cook rice.","Heat skillet over medium with avocado oil. Cook chicken 3–4 min per side to 165°F.","Rest chicken 5–6 minutes, then slice.","Plate: rice, chicken, asparagus. Drizzle with reserved marinade."],notes:""},
+  {id:"13",category:"food",sub:"meal prep",title:"Protein Pasta with Chicken Sausage",source:"@Marianna Moore (via Faith)",servings:4,prepTime:"5 min",cookTime:"15 min",
+    ingredients:["1 box protein pasta (Barilla Protein+)","Pasta sauce (marinara)","1 package pre-cooked chicken sausage, diced","A few handfuls of spinach"],
+    steps:["Cook pasta per package. While cooking, air fry diced sausage at 400°F for 10 minutes.","Drain pasta. In the pot, add sauce and spinach on medium-low until spinach wilts.","Add pasta and sausage, mix until combined.","Store in airtight container up to 4 days."],notes:"Only 4 ingredients!"},
+  {id:"14",category:"food",sub:"dinners",title:"Chicken Lo Mein",source:"@createaplatewithdina",servings:4,prepTime:"15 min",cookTime:"20 min",
+    ingredients:["10 oz spaghetti (or lo mein noodles)","1 lb chicken breast, thinly sliced","½ tsp garlic powder","½ tsp onion powder","½ tsp salt","¼ tsp black pepper","½ medium onion, sliced","1 large carrot, thinly sliced","1 medium bell pepper, sliced","1 medium zucchini, sliced","2 cups broccoli florets","[LO MEIN SAUCE]","1 cup chicken broth","⅓ cup low sodium soy sauce","¼ cup brown sugar","2 tsp sesame oil","2 garlic cloves, pressed","1 tsp fresh ginger, minced","¼ tsp white pepper","½ tbsp corn starch","[EXTRA]","Salt and pepper","Oil for cooking","Sesame oil"],
+    steps:["Cook noodles 1 minute shy of package directions. Drain, toss with sesame oil. Set aside.","Mix all sauce ingredients in a cup until sugar dissolves.","Wok: 2 tsp oil + chicken, season, sauté high heat 4–5 min. Remove.","Wok: 2 tsp oil + bell pepper, onion, sauté 2 min. Add zucchini, carrots 2 min. Add broccoli 2 min. Return chicken.","Add cornstarch to sauce, pour into wok. Let thicken, add noodles, toss to coat 1–2 min.","Remove from heat and enjoy!"],notes:"Under 30 minutes. Tastes like takeout."},
+  {id:"15",category:"food",sub:"dinners",title:"Spicy Vodka Rigatoni & Crispy Chicken",source:"@ryanmichaelcarter",servings:5,prepTime:"20 min",cookTime:"25 min",
+    ingredients:["1 lb rigatoni","1 lb chicken breasts, sliced thin","Neutral cooking oil","[SAUCE]","½ white onion, diced","1 can tomato paste (6 oz)","2 cloves garlic, minced","2 fl oz vodka","2 tsp red chili flakes","1 cup heavy cream","¼ cup EVOO","2 tbsp butter","1 cup Parmigiano, grated","2 tbsp fresh basil, chopped","Salt and pepper","[DRY MIX]","1.5 cups panko","2 cloves garlic, minced","¼ tsp Italian seasoning","½ cup Parmigiano, grated","¼ tsp salt","¼ tsp black pepper","[WET MIX]","2 large eggs","⅓ cup milk","[FLOUR]","½ cup all-purpose flour"],
+    steps:["SAUCE: Heat saucier, add olive oil. Cook onions until translucent. Add garlic, then vodka. Reduce heat. Add cream, chili flakes, butter, tomato paste, Parmigiano, basil. Simmer 10 min.","CHICKEN: Heat oil to 350°F. Slice chicken into thin cutlets.","Set up breading station: flour plate, panko dry mix plate, egg/milk wet mix plate.","Coat chicken: flour → wet mix → dry mix. Fry until 165°F. Season with flaked salt.","PASTA: Boil salted water, cook rigatoni al dente. Save 1 cup pasta water. Drain, add to sauce. Add pasta water as needed.","Serve topped with basil and extra Parmigiano."],notes:""},
+  {id:"16",category:"food",sub:"dinners",title:"Korean Popcorn Chicken with Sticky Rice",source:"Instagram",servings:4,prepTime:"15 min",cookTime:"15 min",
+    ingredients:["[POPCORN CHICKEN]","800g chicken breast, diced","1 tbsp black pepper","20ml soy sauce","1 egg","40g cornflour/cornstarch","[KOREAN GLAZE]","60ml soy sauce","80ml water","2 tbsp low cal ketchup","3 tbsp gochujang paste","2 tbsp rice vinegar","2 tbsp honey","30g brown sugar/stevia","[SWEET STICKY RICE]","200g uncooked sticky rice","3 tbsp rice vinegar","1 tbsp sweetener","Salt to taste","[GARNISHES]","Chopped green onions","Sesame seeds"],
+    steps:["Mix chicken with pepper, soy sauce, egg, and cornstarch.","Air fry at 400°F for 10–12 min, or oven bake at 425°F for 15–18 min.","Glaze: combine all glaze ingredients in a saucepan, heat until thickened.","Cook sticky rice per package. Cool 10 min, stir in rice vinegar, sweetener, salt.","Toss chicken in glaze. Serve over rice with green onions and sesame seeds."],notes:"Stores 5 days in fridge. Reheat with a tsp of water, microwave 3 min."},
+  {id:"17",category:"food",sub:"desserts",title:"Soft Gingersnaps",source:"Handwritten family recipe",servings:24,prepTime:"15 min",cookTime:"12 min",
+    ingredients:["¾ cup butter, softened","1 cup sugar (plus extra for rolling)","1 large egg","¼ cup molasses","2¼ cups all-purpose flour","2 tsp ground ginger","1 tsp baking soda","¾ tsp ground cinnamon","½ tsp ground cloves","¼ tsp salt"],
+    steps:["Cream butter and sugar until fluffy.","Beat in egg and molasses.","Combine flour, ginger, baking soda, cinnamon, cloves, and salt. Gradually add to wet mixture, mix well.","Roll into 1½-inch balls, then roll in sugar.","Bake on ungreased sheets at 350°F for 10–12 minutes."],notes:"Family recipe — desserts section."},
+  {id:"18",category:"food",sub:"sides",title:"Garlicky Guac",source:"Run Fast. Cook Fast. Eat Slow.",servings:4,prepTime:"5 min",cookTime:"",
+    ingredients:["1 large or 2 small ripe avocados, pitted","½ cup chopped tomatoes","2 cloves garlic, minced","¼ tsp fine sea salt","Fresh lime juice, to taste"],
+    steps:["Scoop avocado into a bowl and mash well with a fork.","Stir in tomato, garlic, salt, and lime juice. Adjust to taste."],notes:"Gluten-free and vegan. Great on burgers, wraps, tacos, or with chips."},
+  {id:"19",category:"food",sub:"dinners",title:"Bonk Burgers",source:"Run Fast. Cook Fast. Eat Slow.",servings:5,prepTime:"10 min",cookTime:"10 min",
+    ingredients:["1 lb ground beef or bison (grass-fed)","1 egg","¼ cup chopped parsley","¼ cup oat flour or almond flour","2 cloves garlic, minced","½ tsp fennel seeds (optional)","½ tsp fine sea salt","¼ tsp ground black pepper","5 pitas or whole-wheat rolls (optional)"],
+    steps:["Remove meat from fridge 30 min prior to bring to room temp.","Preheat grill to medium-high.","Combine egg, parsley, flour, garlic, fennel, salt, pepper. Add meat, mix gently. Form 5 patties, 1 inch thick.","Grill, flipping once, until 160°F, 3–4 min per side. Warm buns last minute.","Serve with Garlicky Guac or your favorite toppings."],notes:"Dairy-free, gluten-free in lettuce wraps. Double for leftovers."},
+  {id:"20",category:"food",sub:"dinners",title:"Best Homemade Lasagna",source:"Delish",servings:12,prepTime:"30 min",cookTime:"50 min",
+    ingredients:["[BOLOGNESE SAUCE]","1 tsp extra-virgin olive oil","1 lb (90% lean) ground beef","1 lb ground pork","3 tbsp tomato paste","2 (32-oz) jars marinara sauce","2 tsp kosher salt","[BÉCHAMEL SAUCE]","4 cups whole milk","½ cup (1 stick) unsalted butter","½ cup all-purpose flour","¼ tsp ground nutmeg","2 tsp kosher salt","½ tsp freshly ground black pepper","[ASSEMBLY]","15 no-boil lasagna noodles (about 9 oz)","1 lb whole-milk mozzarella, shredded","3 cups finely grated Parmesan (about 7 oz)","Cooking spray","Chopped fresh parsley"],
+    steps:["BOLOGNESE: In a large pot over medium-high heat, heat oil. Cook beef and pork until no longer pink, about 6 minutes. Drain fat.","Add tomato paste, cook 1 minute. Add marinara and stir. Bring to a boil, add 1 tsp salt. Reduce to medium-low, simmer 20 minutes. Season with remaining salt if needed.","BÉCHAMEL: Heat milk in a medium pot over medium heat until warm but not boiling.","In a large pot, melt butter over medium heat. Add flour, whisk frequently until light tan and like wet sand, about 2 minutes. Very slowly whisk in warm milk. Increase heat to medium-high, whisk constantly until thickened and smooth, 3–5 minutes.","Scrape edges to incorporate any butter-flour mixture. Stir in nutmeg, season with salt and pepper.","ASSEMBLY: Preheat oven to 350°F. In a deep 13x9 dish, spread 1½ cups bolognese, then 3 noodles, ¾ cup béchamel, and about ⅕ of the mozzarella and Parmesan. Repeat for 5 layers, finishing with cheese.","Spray foil with cooking spray, cover dish greased side down.","Bake 20 minutes covered. Increase to 400°F, uncover, bake until bubbly and golden, 25–30 minutes.","Broil on medium until browned in spots, about 1 minute.","Let cool 15 minutes. Top with parsley."],notes:""},
+  {id:"21",category:"food",sub:"dinners",title:"Austrian Schnitzel (Chicken)",source:"Just a Pinch Recipes",servings:4,prepTime:"15 min",cookTime:"10 min",
+    ingredients:["4 boneless skinless chicken breasts","½ cup all-purpose flour (or more as needed)","2 eggs, beaten","1 tbsp oil","¼ cup olive oil","1 cup bread crumbs (up to 2 cups)","1 tsp paprika","Salt and pepper to taste","2 lemons, quartered"],
+    steps:["Butterfly the chicken breasts.","Dredge in flour, then set aside.","Combine eggs, 1 tablespoon oil, paprika, salt, and pepper. Mix well.","Dip floured chicken in egg mixture, then immediately coat in bread crumbs evenly.","Heat ¼ cup oil in a large skillet. Cook chicken until lightly browned, 3–4 minutes per side.","Drain on paper towels while cooking the rest. Serve with lemon wedges."],notes:"Traditionally served with potatoes and tangy red cabbage. Also great with fries."},
+  {id:"22",category:"food",sub:"sides",title:"Cranberry Sauce",source:"Simply Recipes",servings:8,prepTime:"5 min",cookTime:"15 min",
+    ingredients:["1 cup (200g) sugar","1 cup (250ml) water","4 cups (one 12-oz package) fresh or frozen cranberries","Optional: pecans, orange zest, raisins, currants, blueberries, cinnamon, nutmeg, allspice"],
+    steps:["Rinse cranberries and remove any stems.","Put water and sugar in a medium saucepan on high heat. Bring to a boil, stir to dissolve sugar.","Add cranberries, return to a boil. Lower heat and simmer 10 minutes or until most cranberries have burst.","Stir in optional mix-ins if using: half a cup of chopped pecans, a pinch of orange zest, or holiday spices to taste.","Remove from heat. Let cool completely at room temperature, then transfer to a bowl and chill in the refrigerator. Sauce will continue to thicken as it cools."],notes:""},
+  {id:"23",category:"food",sub:"dinners",title:"Linda Kaase's Roast & Veggies",source:"Handwritten family recipe (Mom)",servings:6,prepTime:"10 min",cookTime:"8 hrs",
+    ingredients:["3–4 lb beef roast (eye of round)","1 packet dried Lipton onion soup mix","1 can cream of mushroom soup","1 can green beans, drained","3–4 potatoes, peeled and cut up (small baby red potatoes work great)","2 carrots, cut up (baby carrots work too)"],
+    steps:["Place roast in the middle of a crockpot.","Arrange veggies around the roast — potatoes, carrots, and green beans.","Pour cream of mushroom soup and sprinkle dry onion soup mix on top of everything.","Cook in crockpot on low for 8 hours."],notes:"Mom's recipe. She uses small baby red potatoes (half a bag, peeled and cut) and lots of baby carrots."},
+  {id:"24",category:"food",sub:"soups",title:"Homemade Vegetable Soup",source:"Handwritten family recipe",servings:8,prepTime:"20 min",cookTime:"45 min",
+    ingredients:["Browned sirloin tips (or hamburger)","Cans of pinto beans","Peas OR lima beans","3 potatoes","2 carrots","Frozen corn","2 bouillon cubes (beef or chicken)","1 large can tomato sauce","Minced onion","Salt, pepper, water","A little sugar"],
+    steps:["In a big pot on the stove, brown the meat.","Peel potatoes and cube them. Cook in a separate pot covered with water. Slice carrots into pennies and cook in that same pot (ok to put with potatoes).","After meat, potatoes, and carrots are done, combine everything in the big pot. Add tomato sauce, beans, peas, bouillon cubes, onion, salt, etc.","Add corn last. Add water to fill the pot. Add 1.5 cans of tomato sauce.","Simmer about 30 minutes or more.","Taste and add salt and pepper to your desire."],notes:"Family recipe — soups section."},
+  {id:"25",category:"food",sub:"dinners",title:"Italian Cheesy Chicken",source:"Handwritten family recipe",servings:4,prepTime:"5 min",cookTime:"25 min",
+    ingredients:["½ cup Kraft Parmesan cheese","1 packet Italian dressing mix","½ tsp garlic powder","Chicken breasts"],
+    steps:["Mix Parmesan cheese, Italian dressing packet, and garlic powder together.","Coat chicken breasts with the mixture.","Place in a baking dish.","Cook at 400°F for 20–25 minutes until chicken reaches 165°F."],notes:"Super easy weeknight dinner. Only 4 ingredients."},
+  {id:"26",category:"food",sub:"dinners",title:"Salmon (Two Ways)",source:"Handwritten family recipe",servings:2,prepTime:"5 min",cookTime:"20 min",
+    ingredients:["Salmon fillets","[OPTION 1 — LEMON HERB]","Lemon slices","Olive oil","Rosemary","Garlic","Salt & pepper","[OPTION 2 — MAPLE SOY GLAZE]","3 tbsp maple syrup","3 tbsp soy sauce","2 tbsp olive oil","1 tbsp fresh ginger (or ⅛ tsp ground)","¼ tsp black pepper"],
+    steps:["OPTION 1: Place salmon in aluminum foil. Pour olive oil over salmon. Sprinkle with salt, pepper, garlic, and rosemary. Place lemon slices on top. Fold up foil sides, place in baking dish. Bake at 375°F for 15–20 minutes.","OPTION 2: Mix maple syrup, soy sauce, olive oil, ginger, and pepper to make glaze. Place salmon in foil, pour mixture on salmon. Cover with foil and bake at 375°F.","After 15 minutes, open foil and pour the rest of the glaze over salmon. Leave open and broil for 3 minutes."],notes:"Two variations — lemon herb or maple soy glaze."},
+  {id:"27",category:"food",sub:"dinners",title:"Lemon Chicken Penne",source:"Food Network",servings:4,prepTime:"10 min",cookTime:"15 min",
+    ingredients:["1 lb dried penne","2 chicken cutlets, cut into fingers","Salt and freshly ground black pepper","3 cloves garlic, sliced","¼ tsp red pepper flakes","3 tbsp olive oil","3 tbsp roughly chopped fresh parsley","2 lemons, juiced","½ cup grated Parmesan"],
+    steps:["Cook pasta in a large pot of boiling salted water until al dente. Drain well.","Season chicken with salt and pepper. Heat a large grill pan over medium-high, cook chicken until golden and completely cooked. Remove, slice.","In a sauté pan, add garlic and red pepper flakes with 3 tbsp olive oil. Sauté until fragrant. Add cooked pasta and turn heat off. Mix together.","Transfer pasta to a large bowl. Add chicken, season with salt and pepper. Sprinkle in parsley, squeeze the juice of 2 lemons, and mix. Top with Parmesan before serving."],notes:""}
 ];
 
 // ── STATE ──
 let recipes = [];
 let currentCat = null;
+let activeSub = null;
 let currentRecipe = null;
 let editingId = null;
 let servingsMultiplier = 1;
 let checkedSteps = {};
 let formCat = 'food';
-
+let formSub = 'dinners';
 // ── STORAGE ──
 function loadRecipes() {
   try {
     const d = localStorage.getItem('rex-recipes');
-    if (d) { recipes = JSON.parse(d); }
+    if (d) {
+      recipes = JSON.parse(d);
+      // Merge any new hardcoded recipes not yet in localStorage
+      const existingIds = new Set(recipes.map(r => r.id));
+      for (const r of INITIAL) {
+        if (!existingIds.has(r.id)) recipes.push(JSON.parse(JSON.stringify(r)));
+      }
+      saveToStorage();
+    }
     else { recipes = JSON.parse(JSON.stringify(INITIAL)); saveToStorage(); }
   } catch { recipes = JSON.parse(JSON.stringify(INITIAL)); }
   updateCounts();
@@ -576,19 +640,32 @@ function updateCounts() {
 // ── LIST ──
 function showList(cat) {
   currentCat = cat;
+  activeSub = null;
   document.getElementById('search-input').value = '';
   const emoji = cat === 'food' ? '🍳 ' : cat === 'drinks' ? '🍹 ' : '';
   const label = cat === 'food' ? 'Food' : cat === 'drinks' ? 'Drinks' : 'All Recipes';
   document.getElementById('list-title').textContent = emoji + label;
   showScreen('list-screen');
+  renderChips();
   renderList();
 }
+function renderChips() {
+  const chipRow = document.getElementById('chip-row');
+  const pool = currentCat ? recipes.filter(r => r.category === currentCat) : recipes;
+  const subs = [...new Set(pool.map(r => r.sub).filter(Boolean))];
+  if (subs.length <= 1) { chipRow.innerHTML = ''; return; }
+  chipRow.innerHTML = '<button class="chip' + (!activeSub ? ' on' : '') + '" onclick="setSub(null)">All</button>' +
+    subs.map(s => '<button class="chip' + (activeSub === s ? ' on' : '') + '" onclick="setSub(\'' + s + '\')">' +
+    s.charAt(0).toUpperCase() + s.slice(1) + '</button>').join('');
+}
+function setSub(s) { activeSub = s; renderChips(); renderList(); }
 function renderList() {
   const q = document.getElementById('search-input').value.toLowerCase();
   const filtered = recipes.filter(r => {
     const catOk = currentCat ? r.category === currentCat : true;
+    const subOk = activeSub ? r.sub === activeSub : true;
     const searchOk = q ? (r.title.toLowerCase().includes(q) || r.source.toLowerCase().includes(q)) : true;
-    return catOk && searchOk;
+    return catOk && subOk && searchOk;
   });
   const container = document.getElementById('recipe-list');
   if (filtered.length === 0) {
@@ -599,7 +676,7 @@ function renderList() {
     <button class="recipe-item fade-up" style="animation-delay:${i*0.04}s" onclick="openRecipe('${r.id}')">
       <span class="r-emoji">${r.category === 'food' ? '🍳' : '🍹'}</span>
       <div class="r-info">
-        <div class="r-title">${esc(r.title)}</div>
+        <div class="r-title">${esc(r.title)}${r.sub ? '<span class="sub-badge">' + esc(r.sub) + '</span>' : ''}</div>
         <div class="r-meta">
           ${r.source ? '<span>' + esc(r.source) + '</span>' : ''}
           ${r.prepTime ? '<span>⏱ ' + esc(r.prepTime) + (r.cookTime ? ' + ' + esc(r.cookTime) : '') + '</span>' : ''}
@@ -707,6 +784,18 @@ function setFormCat(cat) {
   formCat = cat;
   document.getElementById('f-cat-food').className = 'toggle-btn' + (cat === 'food' ? ' on' : '');
   document.getElementById('f-cat-drinks').className = 'toggle-btn' + (cat === 'drinks' ? ' on' : '');
+  // Show/hide subcategory row for drinks
+  const subDisplay = cat === 'drinks' ? 'none' : 'flex';
+  document.getElementById('f-sub-row').style.display = subDisplay;
+  document.getElementById('f-sub-row2').style.display = subDisplay;
+  document.querySelectorAll('.field-label')[1].style.display = cat === 'drinks' ? 'none' : 'block';
+  if (cat === 'drinks') formSub = '';
+}
+function setFormSub(sub) {
+  formSub = sub;
+  document.querySelectorAll('#f-sub-row .toggle-btn, #f-sub-row2 .toggle-btn').forEach(btn => {
+    btn.className = 'toggle-btn' + (btn.getAttribute('data-sub') === sub ? ' on' : '');
+  });
 }
 function openAddForm() {
   editingId = null;
@@ -715,6 +804,7 @@ function openAddForm() {
   document.getElementById('delete-form-btn').style.display = 'none';
   document.getElementById('f-title').value = '';
   setFormCat(currentCat || 'food');
+  setFormSub(activeSub || 'dinners');
   document.getElementById('f-source').value = '';
   document.getElementById('f-servings').value = '4';
   document.getElementById('f-prep').value = '';
@@ -732,6 +822,7 @@ function openEditForm() {
   document.getElementById('delete-form-btn').style.display = 'block';
   document.getElementById('f-title').value = currentRecipe.title;
   setFormCat(currentRecipe.category);
+  setFormSub(currentRecipe.sub || 'dinners');
   document.getElementById('f-source').value = currentRecipe.source || '';
   document.getElementById('f-servings').value = currentRecipe.servings || 4;
   document.getElementById('f-prep').value = currentRecipe.prepTime || '';
@@ -749,6 +840,7 @@ function saveRecipe() {
   const recipe = {
     id: editingId || Date.now().toString(),
     category: formCat,
+    sub: formCat === 'drinks' ? '' : formSub,
     title: title,
     source: document.getElementById('f-source').value.trim(),
     servings: parseInt(document.getElementById('f-servings').value) || 4,
